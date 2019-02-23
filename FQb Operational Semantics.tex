@@ -1,0 +1,187 @@
+\documentclass{article}
+
+\usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cs73}
+\usepackage{clrscode3e}
+\usepackage{stmaryrd}
+
+\setlength{\parskip}{\baselineskip}%
+\setlength{\parindent}{0pt}%
+
+\begin{document}
+
+\textbf{Environment-based FQb}
+
+\textbf{Concrete Syntax: }
+
+\begin{center}
+    \begin{math}
+        \begin{array}{r c l}
+            e & ::= & \lbrack c, \ldots \rbrack
+            \\
+            c & ::= & x = b
+            \\
+             b & ::= & 
+             	v
+             	\mid x
+                \mid x \texttt{ + } x
+                \mid x \texttt{ - } x 
+                \mid x \texttt{ And } x
+                \mid x \texttt{ Or } x
+                % \\&&
+                \mid x \ x \mid f
+            \\
+            x & ::= & \text{identifiers}
+             \\
+             v & ::= & 
+             	0 \mid 1 \mid -1 \mid 2 \mid -2 \mid \ldots
+             	\\&&
+             	\mid \texttt{True} 
+             	\mid \texttt{False}
+             	\\&&
+             	\mid \langle E, f \rangle
+            \\
+            f & ::= & \texttt{fun x ->} (e)
+            \\
+            a & ::= & \text{addresses}
+            \\
+            E & ::= & \{ x \mapsto a \}
+            \\
+            \phi & ::= & \lbrack \langle E, e \rangle \rbrack || a 
+            \mid \lbrack\rbrack 
+            \\
+            S & ::= & \{ a \mapsto \phi, a \mapsto v \}
+             
+\end{array}
+\end{math}
+\end{center}
+\textbf{Concrete Operational Semantics: }
+\begin{mathpar}
+
+\text{Note: addr is equivalent as $a$, it just gets more confusing when 
+there are more $a$'s around.}
+
+\ir[Function]{a_1 \notin S}
+{S, \lbrack \langle E, \lbrack x = f \rbrack || e \rangle \rbrack || a_0 \longrightarrow S \cup \{ a_1 \mapsto \langle E, f \rangle \}, 
+\lbrack \langle E || \lbrack x \mapsto a_1 \rbrack, e \rangle \rbrack || a_0 }
+
+\ir[Alias]{x_2 \mapsto a_2 \in E \\ a_2 \mapsto v_2 \in S \\ a_1 \notin S}
+{S, \lbrack \langle E, \lbrack x_1 = x_2 \rbrack || e \rangle || a_0 \longrightarrow S \cup \{ a_1 \mapsto v_2 \}, \lbrack \langle E || 
+\lbrack x_1 \mapsto a_1 \rbrack, e \rangle \rbrack || a_0}
+
+\ir[Value]{a_1 \notin S}
+{S, \lbrack \langle E, \lbrack x_1 = v_1 \rbrack || e \rbrack || a_0 
+\longrightarrow S \cup \{ a_1 \mapsto v_1 \}, \lbrack \langle E || 
+\lbrack x_1 \mapsto a_1 \rbrack, e \rangle \rbrack || a_0}
+
+\ir[Plus]{x_2 \mapsto a_2 \in E \\ x_3 \mapsto a_3 \in E \\ a_2 \mapsto v_2 \in S
+\\ a_3 \mapsto v_3 \in S \\ v_1 = v_2 + v_3 \\ a_1 \notin S}
+{S, \lbrack \langle E, \lbrack x_1 = x_2 + x_3 \rbrack || e \rbrack || a_0 
+\longrightarrow S \cup \{ a_1 \mapsto v_1 \}, \lbrack \langle E || 
+\lbrack x_1 \mapsto a_1 \rbrack, e \rangle \rbrack || a_0}
+
+\text{Note: Minus follows, And and Or sort of follow s well. 
+We can add them in later...}
+
+\begin{footnotesize}
+\ir[call]{\phi = \lbrack \langle E, \lbrack x_1 = x_2 \ x_3 \rbrack || e \rangle
+\rbrack || a_0 \\ x_2 \mapsto a_2 \in E \\ a_2 \mapsto \langle E', \texttt{fun $x_4$ ->} e' \rangle \in S \\ x_3 \mapsto a_3 \in E \\ a_3 \mapsto v_3 \in S \\
+a_4 \notin S }
+{S, \phi \longrightarrow S\cup \{a_4 \mapsto v_3, a' \mapsto \phi\}, 
+\lbrack \langle E' || \lbrack x_4 \mapsto a_4 \rbrack, e' \rangle \rbrack || a'} 
+\end{footnotesize}
+
+\ir[ret]{a_0 \mapsto \phi \in S \\ \phi = \lbrack \langle E', \lbrack x_1 = x_2 \ x_3 \rbrack || e 
+\rangle \rbrack || a' \\ a_1 \notin S}
+{S, \lbrack \langle E, \lbrack x \mapsto v \rbrack \rangle \rbrack
+|| a_0 \longrightarrow S \cup \{a_1 \mapsto v \}, 
+\lbrack \langle E' || \lbrack x_1 \mapsto a_1 \rbrack, e \rangle \rbrack || a' }
+\end{mathpar}
+
+\newpage
+
+\textbf{Abstract Syntax: }
+\begin{center}
+    \begin{math}
+        \begin{array}{r c l}
+            \hat{e} & ::= & \lbrack c, \ldots \rbrack
+            \\
+            \hat{c} & ::= & x = \hat{b}
+            \\
+             \hat{b} & ::= & 
+             	\hat{v}
+             	\mid x
+                \mid x \hat{\texttt{ + }} x
+                \mid x \hat{\texttt{ - }} x 
+                \mid x \hat{\texttt{ And }} x
+                \mid x \hat{\texttt{ Or }} x
+                % \\&&
+                \mid x \ x \mid f
+            \\
+            x & ::= & \text{identifiers}
+             \\
+             \hat{v} & ::= & 
+             	\hat{\texttt{Int}}
+             	\\&&
+             	\mid \hat{\texttt{True}} 
+             	\mid \hat{\texttt{False}}
+             	\\&&
+             	\mid \langle \hat{E}, f \rangle
+            \\
+            f & ::= & \texttt{fun x -> } \hat{\texttt{e}}
+            \\
+            \hat{a} & ::= & V(x) \mid C(x) \mid \epsilon
+            \\
+            \hat{E} & ::= & \{ x_i \mapsto \hat{a_i} \} \text{ where $x_i$ is a variable in the program}
+            \\
+            \hat{\phi} & ::= & \lbrack \langle \hat{E}, \hat{e} \rangle \rbrack || \hat{a} 
+            \mid \lbrack\rbrack 
+            \\
+            \hat{S} & ::= & \{ \hat{a} \mapsto \hat{\phi}, \hat{a} \mapsto \hat{v}, \dots \}
+             
+\end{array}
+\end{math}
+\end{center}
+
+\textbf{Abstract Operational Semantics: }
+\begin{mathpar}
+
+\ir[Function]{\hat{a_1} = V(x)}
+{\hat{S}, \lbrack \langle \hat{E}, \lbrack x = f \rbrack || \hat{e} \rangle \rbrack || \hat{a_0} \longrightarrow \hat{S} \cup \{ \hat{a_1} \mapsto \langle \hat{E}, f \rangle \}, 
+\lbrack \langle \hat{E} || \lbrack x \mapsto \hat{a_1} \rbrack, \hat{e} \rangle \rbrack || \hat{a_0} }
+
+\ir[Alias]{x_2 \mapsto \hat{a_2} \in \hat{E} \\ \hat{a_2} \mapsto \hat{v_2} \in \hat{S} \\ \hat{a_1} = V(x_1)}
+{\hat{S}, \lbrack \langle \hat{E}, \lbrack x_1 = x_2 \rbrack || \hat{e} \rangle || \hat{a_0} \longrightarrow \hat{S} \cup \{ \hat{a_1} \mapsto \hat{v_2} \}, \lbrack \langle \hat{E} || 
+\lbrack x_1 \mapsto \hat{a_1} \rbrack, \hat{e} \rangle \rbrack || \hat{a_0}}
+
+\ir[Value]{\hat{a_1} = V(x_1)}
+{\hat{S}, \lbrack \langle \hat{E}, \lbrack x_1 = \hat{v_1} \rbrack || \hat{e} \rbrack || \hat{a_0} 
+\longrightarrow \hat{S} \cup \{ \hat{a_1} \mapsto \hat{v_1} \}, \lbrack \langle \hat{E} || 
+\lbrack x_1 \mapsto \hat{a_1} \rbrack, \hat{e} \rangle \rbrack || \hat{a_0}}
+
+\ir[Plus]{x_2 \mapsto \hat{a_2} \in \hat{E} \\ x_3 \mapsto \hat{a_3} \in \hat{E} \\ \hat{a_2} \mapsto \hat{\texttt{Int}} \in \hat{S}
+\\ \hat{a_3} \mapsto \hat{\texttt{Int}} \in \hat{S}}
+{\hat{S}, \lbrack \langle \hat{E}, \lbrack x_1 = x_2 \hat{+} x_3 \rbrack || \hat{e} \rbrack || \hat{a_0} 
+\longrightarrow \hat{S} \cup \{ \hat{a_1} \mapsto \hat{\texttt{Int}} \}, \lbrack \langle \hat{E} || 
+\lbrack x_1 \mapsto \hat{a_1} \rbrack, \hat{e} \rangle \rbrack || \hat{a_0}}
+
+\text{Note: Minus follows, And and Or sort of follow s well. 
+We can add them in later...}
+
+\begin{footnotesize}
+\ir[call]{\hat{\phi} = \lbrack \langle \hat{E}, \lbrack x_1 = x_2 \ x_3 \rbrack || \hat{e} \rangle
+\rbrack || \hat{a_0} \\ x_2 \mapsto \hat{a_2} \in \hat{E} \\ \hat{a_2} \mapsto \langle \hat{E'}, \texttt{fun $x_4$->} \hat{e'} \rangle \in \hat{S} \\ x_3 \mapsto \hat{a_3} \in \hat{E} \\ \hat{a_3} \mapsto \hat{v_3} \in \hat{S} \\ \hat{a_4} = V(x_4) \\ \hat{a'} = C(x_1)}
+{\hat{S}, \hat{\phi} \longrightarrow \hat{S}\cup \{\hat{a_4} \mapsto \hat{v_3}, \hat{a'} \mapsto \hat{\phi} \}, 
+\lbrack \langle \hat{E'} || \lbrack x_4 \mapsto \hat{a_4}\rbrack, \hat{e'} \rangle \rbrack || \hat{a'}} 
+\end{footnotesize}
+
+\ir[ret]{\hat{a_0} \mapsto \hat{\phi} \in \hat{S} \\ \hat{\phi} = \lbrack \langle \hat{E'}, \lbrack x_1 = x_2 \ x_3 \rbrack || \hat{e} 
+\rangle \rbrack || \hat{a'} \\ \hat{a_4} \mapsto \hat{v_4} \in \hat{S} \\ \hat{a_1} = V(x_1)}
+{\hat{S}, \lbrack \langle \hat{E} || \lbrack x_4 \mapsto \hat{a_4} \rbrack, \lbrack\rbrack \rangle \rbrack
+|| \hat{a_0} \longrightarrow \hat{S} \cup \{\hat{a_1} \mapsto \hat{v_4} \}, 
+\lbrack \langle \hat{E'} || \lbrack x_1 \mapsto \hat{a_1} \rbrack, \hat{e} \rangle \rbrack || \hat{a'} }
+\end{mathpar}
+
+\end{document}
